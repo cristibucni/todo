@@ -1,7 +1,8 @@
 {
-  "name": "todolist",
+  "name": "todo",
   "version": "0.1.0",
   "private": true,
+  "main": "server.js --prefix backend",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
@@ -11,10 +12,11 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "client-install": "npm install -- prefix client",
+    "start": "node server.js --prefix backend",
+    "server": "nodemon server.js --prefix backend",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "eslintConfig": {
     "extends": "react-app"
