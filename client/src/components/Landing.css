@@ -3,14 +3,37 @@
   height: 50px;
   list-style-type: none;
   padding-top: 16px;
-
   font-size: 20px;
-  -webkit-animation: slide-in-top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  animation: slide-in-top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  background: white no-repeat;
+  background-image: linear-gradient(to bottom, #4d90fe, #4d90fe),
+    linear-gradient(to bottom, silver, silver);
+  background-size: 0 2px, 100% 0px;
+  background-position: 50% 100%, 50% 100%;
+  transition: background-size 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+}
+
+.dropBox {
+  width: 100% !important;
+  cursor: pointer;
+}
+
+.item:hover {
+  transition: 0.7s;
+  background-color: rgba(243, 242, 242, 0.795);
+}
+
+.border-focus {
+  padding-top: 15px !important;
+  background-size: 100% 2px, 100% 1px;
+  outline: none;
+  border: 0;
+  transition: background-size 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
 }
 
 .item-name {
   padding-left: 14px;
+  cursor: pointer;
+  display: inline-block;
 }
 
 .task-checkbox {
@@ -19,7 +42,19 @@
   cursor: pointer;
 }
 
-.task-delete {
+.name-input {
+  padding-left: 14px;
+  border: 0;
+  width: 85%;
+}
+
+.name-input:focus {
+  background-size: 100% 2px, 100% 1px;
+  outline: none;
+  border: 0;
+}
+
+.task-button {
   transition-duration: 0.4s;
   float: right;
   background: transparent;
@@ -35,7 +70,7 @@
   cursor: pointer;
 }
 
-.task-delete:hover {
+.task-button:hover {
   color: #e74c3c !important;
   border: 2px solid #e74c3c;
 }
@@ -69,32 +104,10 @@
   outline: none;
 }
 
+.nuttin {
+  max-width: 100%;
+}
+
 .line-through {
   text-decoration: line-through;
-}
-
-@-webkit-keyframes slide-in-top {
-  0% {
-    -webkit-transform: translateY(-25px);
-    transform: translateY(-25px);
-    opacity: 0;
-  }
-  100% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-top {
-  0% {
-    -webkit-transform: translateY(-25px);
-    transform: translateY(-25px);
-    opacity: 0;
-  }
-  100% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-    opacity: 1;
-  }
 }

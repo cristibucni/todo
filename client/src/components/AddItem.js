@@ -5,6 +5,7 @@ class AddItem extends Component {
     this.state = {
       itemName: "",
       itemDone: false,
+      errorMessage: "No duplicate names kind sir.",
     };
   }
 
@@ -17,9 +18,9 @@ class AddItem extends Component {
   };
 
   handleOnKeyPress = (e) => {
-    console.log(e);
     if (e.key === "Enter") {
       this.props.onSubmit(this.state);
+
       this.setState({ itemName: "" });
     }
   };
@@ -33,12 +34,14 @@ class AddItem extends Component {
           <input
             type="text"
             name="itemName"
-            className="input"
+            className={"input"}
             placeholder="Task name"
             onChange={this.onChange}
             value={this.state.itemName}
             onKeyPress={this.handleOnKeyPress}
+            autoComplete="off"
           />
+          {this.props.duplicateTitle && this.state.errorMessage}
         </div>
       </div>
     );

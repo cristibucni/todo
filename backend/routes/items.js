@@ -11,6 +11,18 @@ router.route("/").get((req, res) => {
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
+router.route("/").delete((req, res) => {
+  Item.deleteMany()
+    .then(() => res.json("all deleted"))
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
+router.route("/").post((req, res) => {
+  Item.insertMany(req.body)
+    .then((response) => res.json(response))
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
 router.route("/add").post((req, res) => {
   const itemName = req.body.itemName;
   const itemOrderNo = req.body.itemOrderNo;
