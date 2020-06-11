@@ -3,14 +3,9 @@ class AddItem extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      itemName: "",
-      itemDone: false,
-      errorMessage: "No duplicate names kind sir.",
+      name: "",
+      errorMessage: "You already have this task",
     };
-  }
-
-  componentDidMount() {
-    this.setState({ hasUpdated: false });
   }
 
   onChange = (e) => {
@@ -21,23 +16,23 @@ class AddItem extends Component {
     if (e.key === "Enter") {
       this.props.onSubmit(this.state);
 
-      this.setState({ itemName: "" });
+      this.setState({ name: "" });
     }
   };
 
   render() {
     return (
       <div className="container">
-        <div className="tasks-header">Add task</div>
+        <div className="tasks-header">Add to-do</div>
         <br />
         <div>
           <input
             type="text"
-            name="itemName"
-            className={"input"}
+            name="name"
+            className="input"
             placeholder="Task name"
             onChange={this.onChange}
-            value={this.state.itemName}
+            value={this.state.name}
             onKeyPress={this.handleOnKeyPress}
             autoComplete="off"
           />

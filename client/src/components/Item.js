@@ -5,7 +5,7 @@ class Item extends Component {
     super(props);
     this.state = {
       edit: false,
-      itemName: this.props.data.itemName,
+      name: this.props.data.name,
       itemDone: this.props.checked,
       _id: this.props.data._id,
     };
@@ -14,7 +14,7 @@ class Item extends Component {
   onClick = () => {
     this.setState({
       edit: !this.state.edit,
-      itemName: this.props.data.itemName,
+      name: this.props.data.name,
     });
   };
 
@@ -29,8 +29,7 @@ class Item extends Component {
       this.setState({ edit: false }, () => {
         if (!this.state.edit) {
           const newTaskData = {
-            itemName: this.state.itemName,
-            itemDone: this.state.itemDone,
+            name: this.state.name,
             _id: this.state._id,
           };
           this.props.onEditDone(newTaskData);
@@ -40,12 +39,12 @@ class Item extends Component {
   };
 
   render() {
-    const additionalClassName = this.props.checked ? "line-through" : "";
+    const additionalClassName = this.props.checked ? "item-done" : "";
     const additionalItemClassName = this.state.edit ? "border-focus" : "";
     return (
       <li
         key={this.props.data._id}
-        className={"item " + additionalItemClassName}
+        className={"item " + additionalItemClassName + additionalClassName}
       >
         <input
           type="checkbox"
@@ -59,18 +58,18 @@ class Item extends Component {
           <input
             id="input"
             type="text"
-            value={this.state.itemName}
+            value={this.state.name}
             onChange={this.onChange}
-            name="itemName"
+            name="name"
             onKeyPress={this.onKeyPress}
             className="name-input"
+            autoComplete="off"
           />
         ) : (
           <span className={"item-name " + additionalClassName}>
-            {this.props.data.itemName}
+            {this.props.data.name}
           </span>
         )}
-
         <button
           className="task-button"
           onClick={() => this.props.onDelete(this.props.data._id)}

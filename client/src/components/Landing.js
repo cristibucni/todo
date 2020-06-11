@@ -3,13 +3,14 @@ import axios from "axios";
 import AddItem from "./AddItem";
 import _ from "lodash";
 import { SortableItem, swapArrayPositions } from "react-sort-list";
-import Item from "./Item";
 import { css } from "@emotion/core";
+import Item from "./Item";
+import CompletedItem from "./CompletedItem";
 import RingLoader from "react-spinners/ClipLoader";
 
 const override = css`
   display: block;
-  margin: 30% auto;
+  margin: 10% auto;
   border-color: #1b1b1f;
 `;
 class Landing extends Component {
@@ -18,6 +19,7 @@ class Landing extends Component {
     this.state = {
       loading: true,
       tasksArray: [],
+      completedTasksArray: [],
       duplicateTitle: false,
     };
   }
@@ -30,113 +32,26 @@ class Landing extends Component {
         const todos = tasksArray.map((task, index) => {
           return {
             id: index + 1,
-            title: task.itemName,
+            title: task.name,
           };
         });
-        this.setState({
-          tasksArray,
-          loading: false,
-          todos,
+        axios.get("/completedItems").then((response) => {
+          const completedTasksArray = response.data;
+          this.setState({
+            tasksArray,
+            completedTasksArray,
+            loading: false,
+            todos,
+          });
         });
       })
       .catch((error) => {});
   }
 
-  swap = (dragIndex, dropIndex) => {
-    let swappedTodo = swapArrayPositions(
-      this.state.todos,
-      dragIndex,
-      dropIndex
-    );
-    this.setState(
-      {
-        todos: swappedTodo,
-      },
-      () => {
-        let newTasksArray = [];
-        this.state.todos.forEach((todo) => {
-          this.state.tasksArray.forEach((task) => {
-            if (todo.title === task.itemName) {
-              newTasksArray.push(task);
-            }
-          });
-        });
-        this.updateWholeArray(newTasksArray);
-      }
-    );
-  };
-
-  handleCheckbox = (taskId) => {
-    let doneTask = this.state.tasksArray.filter((task) => {
-      return task._id === taskId;
-    });
-    const newTasksArray = this.state.tasksArray.filter((task) => {
-      return task._id !== taskId;
-    });
-    if (doneTask[0].itemDone) {
-      _.set(doneTask[0], "itemDone", false);
-      newTasksArray.unshift(doneTask[0]);
-    } else {
-      _.set(doneTask[0], "itemDone", true);
-      newTasksArray.push(doneTask[0]);
-    }
-
-    this.updateWholeArray(newTasksArray);
-  };
-
-  updateWholeArray = (newTasksArray) => {
-    axios
-      .delete("/items/")
-      .then((response) => {
-        axios
-          .post("/items/", newTasksArray)
-          .then((response) => {
-            const tasksArray = response.data;
-            this.setState({ tasksArray });
-          })
-          .catch((error) => {
-            this.handleErrors(error.response.data);
-          });
-      })
-      .catch((error) => {});
-  };
-
-  addItem = (data) => {
-    let { tasksArray } = this.state;
-    tasksArray.push(data);
-    const todos = tasksArray.map((task, index) => {
-      return {
-        id: index + 1,
-        title: task.itemName,
-      };
-    });
-    this.setState({
-      tasksArray,
-      todos,
-      duplicateTitle: false,
-    });
-  };
-
-  updateItem = (data) => {
-    let newTasksArray = this.state.tasksArray;
-    _.set(
-      newTasksArray[_.findIndex(this.state.tasksArray, ["_id", data._id])],
-      "itemName",
-      data.itemName
-    );
-    const todos = newTasksArray.map((task, index) => {
-      return {
-        id: index + 1,
-        title: task.itemName,
-      };
-    });
-    this.setState({ tasksArray: newTasksArray, todos, duplicateTitle: false });
-  };
-
-  onSubmit = (data) => {
+  onAddNewTask = (data) => {
     let flag = false;
     this.state.tasksArray.forEach((task) => {
-      if (task.itemName === data.itemName) {
+      if (task.name === data.name) {
         flag = true;
       }
     });
@@ -146,7 +61,19 @@ class Landing extends Component {
         .then((response) => {
           const { status } = response;
           if (status === 200) {
-            this.addItem(response.data);
+            let { tasksArray } = this.state;
+            tasksArray.push(response.data);
+            const todos = tasksArray.map((task, index) => {
+              return {
+                id: index + 1,
+                title: task.name,
+              };
+            });
+            this.setState({
+              tasksArray,
+              todos,
+              duplicateTitle: false,
+            });
           }
         })
         .catch((error) => {
@@ -157,7 +84,57 @@ class Landing extends Component {
     }
   };
 
-  handleOnDelete = (taskId) => {
+  onEditTask = (newTaskData) => {
+    let flag = false;
+    this.state.tasksArray.forEach((task) => {
+      if (task.name === newTaskData.name) {
+        flag = true;
+      }
+    });
+    if (!flag) {
+      let newTasksArray = this.state.tasksArray;
+      _.set(
+        newTasksArray[
+          _.findIndex(this.state.tasksArray, ["_id", newTaskData._id])
+        ],
+        "name",
+        newTaskData.name
+      );
+      const todos = newTasksArray.map((task, index) => {
+        return {
+          id: index + 1,
+          title: task.name,
+        };
+      });
+      axios
+        .put("/items/update/" + newTaskData._id, newTaskData)
+        .then((response) => {
+          const { status } = response;
+          if (status === 200) {
+            this.setState({
+              tasksArray: newTasksArray,
+              todos,
+              duplicateTitle: false,
+            });
+          }
+        })
+        .catch((error) => {
+          this.handleErrors(error.response.data);
+        });
+    } else {
+      this.setState({ duplicateTitle: true });
+    }
+  };
+
+  handleCheckbox = (taskId) => {
+    const doneTask = this.state.tasksArray.filter((task) => {
+      return task._id === taskId;
+    });
+    this.onDeleteTask(taskId);
+    this.submitCompletedTask(doneTask[0]);
+  };
+
+  onDeleteTask = (taskId) => {
     axios
       .delete("/items/" + taskId)
       .then((response) => {
@@ -170,7 +147,7 @@ class Landing extends Component {
           const todos = newTasksArray.map((task, index) => {
             return {
               id: index + 1,
-              title: task.itemName,
+              title: task.name,
             };
           });
           this.setState({
@@ -184,28 +161,68 @@ class Landing extends Component {
       });
   };
 
-  onEditDone = (newTaskData) => {
-    let flag = false;
-    this.state.tasksArray.forEach((task) => {
-      if (task.itemName === newTaskData.itemName) {
-        flag = true;
-      }
+  onSwapTasks = (dragIndex, dropIndex) => {
+    let swappedTodo = swapArrayPositions(
+      this.state.todos,
+      dragIndex,
+      dropIndex
+    );
+
+    let newTasksArray = [];
+    swappedTodo.forEach((todo) => {
+      this.state.tasksArray.forEach((task) => {
+        if (todo.title === task.name) {
+          newTasksArray.push(task);
+        }
+      });
     });
-    if (!flag) {
-      axios
-        .put("/items/update/" + newTaskData._id, newTaskData)
-        .then((response) => {
-          const { status } = response;
-          if (status === 200) {
-            this.updateItem(response.data);
-          }
-        })
-        .catch((error) => {
-          this.handleErrors(error.response.data);
-        });
-    } else {
-      this.setState({ duplicateTitle: true });
-    }
+    this.updateWholeArray(newTasksArray, swappedTodo);
+  };
+
+  updateWholeArray = (newTasksArray, todos) => {
+    axios
+      .delete("/items/")
+      .then((response) => {
+        axios
+          .post("/items/", newTasksArray)
+          .then((response) => {
+            const tasksArray = response.data;
+            this.setState({ tasksArray, todos });
+          })
+          .catch((error) => {
+            this.handleErrors(error.response.data);
+          });
+      })
+      .catch((error) => {});
+  };
+
+  onDeleteCompletedTasks = () => {
+    axios
+      .delete("/completedItems/")
+      .then((response) => {
+        this.setState({ completedTasksArray: [] });
+      })
+      .catch((error) => {});
+  };
+
+  submitCompletedTask = (taskData) => {
+    axios
+      .post("/completedItems/add", taskData)
+      .then((response) => {
+        const { status } = response;
+        if (status === 200) {
+          this.updateCompletedArray(response.data);
+        }
+      })
+      .catch((error) => {
+        this.handleErrors(error.response.data);
+      });
+  };
+
+  updateCompletedArray = (taskData) => {
+    let newCompletedTasksArray = this.state.completedTasksArray;
+    newCompletedTasksArray.push(taskData);
+    this.setState({ completedTasksArray: newCompletedTasksArray });
   };
 
   handleErrors = (error) => {
@@ -215,10 +232,10 @@ class Landing extends Component {
     return window.alert(msg);
   };
 
-  renderItems = () => {
+  renderTasks = () => {
     const { tasksArray } = this.state;
     return _.isEmpty(tasksArray) ? (
-      <img src="nuttin.png" alt="..." className="nuttin" />
+      <center>( ͡° ͜ʖ ͡°) I see you.</center>
     ) : (
       tasksArray.map((item, index) => {
         return (
@@ -226,18 +243,32 @@ class Landing extends Component {
             items={this.state.todos}
             id={this.state.todos[index].id}
             key={this.state.todos[index].id}
-            swap={this.swap}
+            swap={this.onSwapTasks}
           >
             <Item
-              onDelete={this.handleOnDelete}
+              onDelete={this.onDeleteTask}
               data={item}
               key={item._id}
               handleCheckbox={this.handleCheckbox}
               checked={item.itemDone}
-              onEditDone={this.onEditDone}
+              onEditDone={this.onEditTask}
             />
           </SortableItem>
         );
+      })
+    );
+  };
+
+  renderCompletedTasks = () => {
+    const { completedTasksArray } = this.state;
+    return _.isEmpty(completedTasksArray) ? (
+      <center>
+        “Never put off till tomorrow what may be done day after tomorrow just as
+        well.”
+      </center>
+    ) : (
+      completedTasksArray.map((item, index) => {
+        return <CompletedItem data={item} key={item._id} />;
       })
     );
   };
@@ -256,18 +287,29 @@ class Landing extends Component {
       </div>
     ) : (
       <div className="container">
-        <div className="row">
-          <div className="col">
-            <AddItem
-              onSubmit={this.onSubmit}
-              duplicateTitle={this.state.duplicateTitle}
-            />
+        <div className="col">
+          <AddItem
+            onSubmit={this.onAddNewTask}
+            duplicateTitle={this.state.duplicateTitle}
+          />
+        </div>
+        <div className="col">
+          {" "}
+          <div className="tasks-header">Tasks</div>
+          {this.renderTasks()}
+        </div>
+        <div className="col">
+          {" "}
+          <div className="tasks-header">
+            Completed tasks{" "}
+            <button
+              className="remove-all"
+              onClick={() => this.onDeleteCompletedTasks()}
+            >
+              <i className="fa fa-remove" />
+            </button>
           </div>
-          <div className="col">
-            {" "}
-            <div className="tasks-header">List of tasks</div>
-            {this.renderItems()}
-          </div>
+          {this.renderCompletedTasks()}
         </div>
       </div>
     );

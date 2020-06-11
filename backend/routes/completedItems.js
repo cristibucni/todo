@@ -1,24 +1,24 @@
 const router = require("express").Router();
-let Item = require("../models/item");
+let CompletedItem = require("../models/completedItem");
 
 /** @route
  *  @desc
  *  @access
  */
 router.route("/").get((req, res) => {
-  Item.find()
-    .then((items) => res.json(items))
+  CompletedItem.find()
+    .then((completedItems) => res.json(completedItems))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
 router.route("/").delete((req, res) => {
-  Item.deleteMany()
-    .then(() => res.json("all deleted"))
+  CompletedItem.deleteMany()
+    .then((response) => res.json(response))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
 router.route("/").post((req, res) => {
-  Item.insertMany(req.body)
+  CompletedItem.insertMany(req.body)
     .then((response) => res.json(response))
     .catch((err) => res.status(400).json("Error: " + err));
 });
@@ -26,36 +26,25 @@ router.route("/").post((req, res) => {
 router.route("/add").post((req, res) => {
   const name = req.body.name;
 
-  const newItem = new Item({ name });
+  const newItem = new CompletedItem({
+    name,
+  });
 
   newItem
     .save()
-    .then((item) => res.json(item))
+    .then((completedItem) => res.json(completedItem))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
 router.route("/:id").get((req, res) => {
-  Item.findById(req.params.id)
-    .then((item) => res.json(item))
+  CompletedItem.findById(req.params.id)
+    .then((completedItem) => res.json(completedItem))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 
 router.route("/:id").delete((req, res) => {
-  Item.findByIdAndDelete(req.params.id)
-    .then(() => res.json("Item deleted."))
-    .catch((err) => res.status(400).json("Error: " + err));
-});
-
-router.route("/update/:id").put((req, res) => {
-  Item.findById(req.params.id)
-    .then((item) => {
-      item.name = req.body.name;
-
-      item
-        .save()
-        .then((response) => res.json(response))
-        .catch((err) => res.status(400).json("Error: " + err));
-    })
+  CompletedItem.findByIdAndDelete(req.params.id)
+    .then(() => res.json("completedItem deleted."))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 

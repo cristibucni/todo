@@ -20,8 +20,10 @@ connection.once("open", () => {
 });
 
 const itemsRouter = require("./routes/items");
+const completedItemsRouter = require("./routes/completedItems");
 
 app.use("/items", itemsRouter);
+app.use("/completedItems", completedItemsRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
